@@ -1,0 +1,27 @@
+{
+  "models": {
+    "default": {
+      "provider": "ollama",
+      "model": "smollm2",
+      "url": "http://ollama:11434"
+    }
+  },
+  "servers": {
+    "time": {
+      "enabled": true,
+      "transport": {
+        "type": "docker",
+        "image": "ghcr.io/modelcontextprotocol/servers/time:latest"
+      }
+    },
+    "openweather": {
+      "enabled": true,
+      "transport": {
+        "type": "docker",
+        "image": "ghcr.io/modelcontextprotocol/servers/openweather:latest"
+      },
+      "env": { "OPENWEATHER_API_KEY": "${OPENWEATHER_API_KEY}" }
+    }
+  },
+  "gateway": { "host": "0.0.0.0", "port": 8765 }
+}

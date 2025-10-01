@@ -1,0 +1,38 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports: ["11434:11434"]
+    volumes:
+      - ollama:/root/.ollama
+
+  init-model:
+    image: curlimages/curl:8.8.0
+    depends_on: [ollama]
+    entrypoint: ["/bin/sh","-c"]
+    command: |
+      until curl -s http://ollama:11434/api/tags >/dev/null; do
+        echo "waiting for ollama"; sleep 2; done && \
+      curl -s -X POST http://ollama:11434/api/pull -d '{"name":"smollm2"}'
+
+  mcp-gateway:
+    image: docker/mcp-gateway:latest
+    container_name: mcp-gateway
+    restart: unless-stopped
+    depends_on:
+      - ollama
+      - init-model
+    ports:
+      - "8765:8765"
+  
+    command: ["--config", "/etc/mcp/gateway.json"]
+    environment:
+      - MODEL_NAME=smollm2
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
+    volumes:
+      - ./mcp-gateway.json:/etc/mcp/gateway.json:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  ollama: {}
